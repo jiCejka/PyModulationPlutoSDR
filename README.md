@@ -4,9 +4,14 @@ This is part of my thesis. I will add the text part here later.
 
 It should help with understanding the basic modulations (AM, FM, ASK, PSK, FSK and QAM). These modulations can be transmitted, received and demodulated. ADALM PLUTO is required to broadcast.
 
+It is czech in some parts and all comments. For translation you can use Google translater or you can conntact me and we will figure it out.
+
 If you need anything feel free to contact me. (jirka.cejka@email.cz)
 
-## Dependencies  
+## Plans
+I am planing add new features in future.
+
+### Dependencies  
 Python >=3.10
 
 matplotlib >=3.5.1
