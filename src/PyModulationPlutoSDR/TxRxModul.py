@@ -221,8 +221,22 @@ def VyhodnoceniZprav(veta): # Vyhodnotí převedené pakety na text
     else:
         out = ''
         kolik = 1
-    print(veta)
+    # print(veta)
     return out, kolik
+
+def ToDecimal(naPrevod , k, n): # Převod na decimální hodnotu
+    dec = 0
+    if n == 2: j = 8
+    if n > 2: j = 4
+
+    try:
+        for i in np.arange(j):
+            dec = dec + naPrevod[i] * n**k
+            k -= 1
+        return dec
+    except:
+        pass
+
 
 def VysilanaVeta2(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly převede bity na symboly
     necelaVeta = True
@@ -230,7 +244,7 @@ def VysilanaVeta2(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly přev
     veta = ['','','']
     zacatek = False # Značí nalezení StartByte
     l = 0 # Značí počet průchodů
-    print(nalezeno)
+    # print(nalezeno)
     nalezeno[0] = opravaKorelace(bit,nalezeno[0], startSymbol_bin) # Dojde k opravě korelace, protože ukazuje o kus vedle
     
     for i in np.arange(3):
@@ -243,11 +257,7 @@ def VysilanaVeta2(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly přev
         """
         Převod na decimální hodnotu
         """
-        dec = 0
-        k = 7
-        for i in np.arange(8):
-            dec = dec + nalezenyByte[i] * n**k
-            k -= 1
+        dec = ToDecimal(nalezenyByte, 7, n)
         
         """
         Vyhodnocení rámce
@@ -265,9 +275,9 @@ def VysilanaVeta2(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly přev
             zacatek = False            
 
         if dalsiByte >= 512 or nalezeno[l]+1+len(startSymbol_bin)+dalsiByte+8 > len(bit): # Nenašel jsem StopByte nebo jsem mimo signál
-            print(veta[l])
+            # print(veta[l])
             veta[l] = ''
-            print(dalsiByte)           
+            # print(dalsiByte)           
             l += 1
             if l == 3: break # Ukončí se převod, pokud už to proběhlo 3x
             nalezeno[l] = opravaKorelace(bit,nalezeno[l], startSymbol_bin) # Oprava další hodnoty z korelace pro další pokus
@@ -288,7 +298,7 @@ def VysilanaVeta4(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly přev
     veta = ['','','']
     zacatek = False # Značí nalezení StartByte
     l = 0 # Značí počet průchodů
-    print(nalezeno)
+    # print(nalezeno)
     nalezeno[0] = opravaKorelace(bit,nalezeno[0], startSymbol_bin) # Dojde k opravě korelace, protože ukazuje o kus vedle
 
     while necelaVeta:
@@ -297,11 +307,7 @@ def VysilanaVeta4(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly přev
         """
         Převod na decimální hodnotu
         """
-        dec = 0
-        k = 3
-        for i in np.arange(4):
-            dec = dec + nalezenyByte[i] * n**k
-            k -= 1
+        dec = ToDecimal(nalezenyByte, 3, n)
 
         """
         Vyhodnocení rámce
@@ -320,7 +326,7 @@ def VysilanaVeta4(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly přev
                     
         if dalsiByte >= 512 or nalezeno[l]+1+len(startSymbol_bin)+dalsiByte+4 > len(bit): # Nenašel jsem StopByte nebo jsem mimo signál
             veta[l] = ''
-            print(dalsiByte)
+            # print(dalsiByte)
             l += 1
             if l == 3: break
 
@@ -342,7 +348,7 @@ def VysilanaVeta8(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly přev
     veta = ['','','']
     zacatek = False # Značí nalezení StartByte
     l = 0 # Značí počet průchodů
-    print(nalezeno)
+    # print(nalezeno)
     nalezeno[0] = opravaKorelace(bit,nalezeno[0], startSymbol_bin) # Dojde k opravě korelace, protože ukazuje o kus vedle
     
     for i in np.arange(3):
@@ -355,11 +361,7 @@ def VysilanaVeta8(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly přev
         """
         Převod na decimální hodnotu
         """
-        dec = 0
-        k = 3
-        for i in np.arange(4):
-            dec = dec + nalezenyByte[i] * n**k
-            k -= 1
+        dec = ToDecimal(nalezenyByte, 3, n)
 
         """
         Vyhodnocení rámce
@@ -378,7 +380,7 @@ def VysilanaVeta8(bit, startSymbol_bin, nalezeno, n): # Mezi start symboly přev
         
         if dalsiByte >= 512 or nalezeno[l]+1+len(startSymbol_bin)+dalsiByte+4 > len(bit): # Nenašel jsem StopByte nebo jsem mimo signál
             veta[l] = ''
-            print(dalsiByte)
+            # print(dalsiByte)
             l += 1
             if l == 3: break # Ukončí se převod, pokud už to proběhlo 3x
 

@@ -17,7 +17,7 @@ matplotlib.use('QT5Agg')
 class Worker(QObject):
     finished = pyqtSignal() # Signál pro signalizaci skončení vláklna
 
-    def AM(self, carrier_freq, modulater_freq, modulation_index, n, sample_rate):
+    def AM(self, carrierFreq, modulFreq, modulation_index, n, sample_rate):
         global N
         modulation_index = modulation_index/100
         N = n*5
@@ -26,35 +26,35 @@ class Worker(QObject):
         """
         Komlexní zápis
         """
-        # cosModulacni = np.cos(modulater_freq * xRadians) + 1j * np.sin(modulater_freq * xRadians)
-        # cosNosna = np.cos(carrier_freq * xRadians) + 1j * np.sin(carrier_freq * xRadians)
-        # samples = A_c * (1 + modulation_index * cosModulacni) * cosNosna
+        # cosModul = np.cos(modulFreq * xRadians) + 1j * np.sin(modulFreq * xRadians)
+        # cosCarrier = np.cos(carrierFreq * xRadians) + 1j * np.sin(carrierFreq * xRadians)
+        # samples = A_c * (1 + modulation_index * cosModul) * cosCarrier
         """
         Normální zápis
         """
-        global samples, cosNosna, cosModulacni
-        cosModulacni = np.cos(modulater_freq * 2 * np.pi * t)
-        cosNosna = np.cos(carrier_freq * 2 * np.pi * t)
-        # samples = A_c * (1 + modulation_index * cosModulacni) * cosNosna
-        samples = modulation_index * cosModulacni * cosNosna + cosNosna
+        global samples, cosCarrier, cosModul
+        cosModul = np.cos(modulFreq * 2 * np.pi * t)
+        cosCarrier = np.cos(carrierFreq * 2 * np.pi * t)
+        # samples = A_c * (1 + modulation_index * cosModul) * cosCarrier
+        samples = modulation_index * cosModul * cosCarrier + cosCarrier
         
         samples = TxRxModul.NormovaniAbs(samples)
-        cosModulacni = TxRxModul.NormovaniAbs(cosModulacni)
-        cosNosna = TxRxModul.NormovaniAbs(cosNosna)
+        cosModul = TxRxModul.NormovaniAbs(cosModul)
+        cosCarrier = TxRxModul.NormovaniAbs(cosCarrier)
 
         self.finished.emit() # Vyslání signálu o skončení vlákna
 
-    def FM(self, carrier_freq, modulater_freq, D_f, n, sample_rate):
+    def FM(self, carrierFreq, modulFreq, D_f, n, sample_rate):
         global N
         D_f = D_f/10
         N = n*5
         t = np.arange(N) / sample_rate  # Diskrétní čas
 
-        global samples, cosNosna, cosModulacni
+        global samples, cosCarrier, cosModul
 
-        cosNosna = np.cos(2*np.pi*carrier_freq*t)
-        cosModulacni = np.cos(2*np.pi*modulater_freq*t)  # Vysílaná zpráva
-        samples = np.cos(2*np.pi*carrier_freq*t + D_f*np.sin(2*np.pi*modulater_freq*t))
+        cosCarrier = np.cos(2*np.pi*carrierFreq*t)
+        cosModul = np.cos(2*np.pi*modulFreq*t)  # Vysílaná zpráva
+        samples = np.cos(2*np.pi*carrierFreq*t + D_f*np.sin(2*np.pi*modulFreq*t))
         
         self.finished.emit() # Vyslání signálu o skončení vlákna
 
@@ -81,7 +81,7 @@ class Worker(QObject):
             y = self.PokracovaniASK(x,n,k)                    
         return y
 
-    def ASK(self, n, opakovani, polorovina, sekvence, carrier_freq, sample_rate, x):
+    def ASK(self, n, opakovani, polorovina, sekvence, carrierFreq, sample_rate, x):
         global samples, out, xIntText
 
         """
@@ -121,14 +121,14 @@ class Worker(QObject):
             xAmp = xInt / (n - 1) - 1.5
         xSymbols = xAmp * (np.cos(0) + 1j * np.sin(0))  # Vytvočení komplexních čísel
         samples = np.repeat(xSymbols, opakovani)
-        out = self.IQnaReal(samples,len(samples), np.arange(delka) / sample_rate, carrier_freq)
+        out = self.IQnaReal(samples,len(samples), np.arange(delka) / sample_rate, carrierFreq)
 
         xIntText = str(xInt)
         xIntText = xIntText.replace("[", "")
         xIntText = xIntText.replace("]", "")
         self.finished.emit() # Vyslání signálu o skončení vlákna
 
-    def PSK(self, n, opakovani, sekvence, carrier_freq, sample_rate, x):
+    def PSK(self, n, opakovani, sekvence, carrierFreq, sample_rate, x):
         global samples, out, xIntText
 
         """
@@ -154,14 +154,14 @@ class Worker(QObject):
         else:
             xSymbols = np.cos(xRadians) + 1j * np.sin(xRadians)  # Vytvoří komplexní symbol
         samples = np.repeat(xSymbols, opakovani) 
-        out = self.IQnaReal(samples,len(samples), np.arange(delka) / sample_rate, carrier_freq)
+        out = self.IQnaReal(samples,len(samples), np.arange(delka) / sample_rate, carrierFreq)
 
         xIntText = str(xInt)
         xIntText = xIntText.replace("[", "")
         xIntText = xIntText.replace("]", "")
         self.finished.emit() # Vyslání signálu o skončení vlákna
 
-    def QAM(self, n, opakovani, sekvence, carrier_freq, sample_rate, x):  # jen do 32b
+    def QAM(self, n, opakovani, sekvence, carrierFreq, sample_rate, x):  # jen do 32b
         global samples, out, xIntText
         
         """
@@ -321,14 +321,14 @@ class Worker(QObject):
                     i += 1
 
         samples = np.repeat(xSymbols, opakovani)  # Z impulzu na pulz o délce opakování
-        out = self.IQnaReal(samples,len(samples), np.arange(delka) / sample_rate, carrier_freq)
+        out = self.IQnaReal(samples,len(samples), np.arange(delka) / sample_rate, carrierFreq)
 
         xIntText = str(xInt)
         xIntText = xIntText.replace("[", "")
         xIntText = xIntText.replace("]", "")
         self.finished.emit() # Vyslání signálu o skončení vlákna
 
-    def FSK(self, n, opakovani, sekvence, carrier_freq, sample_rate, x, Delta_f): # Podívat se i na předlohu - podle mě to uplně nefunguje
+    def FSK(self, n, opakovani, sekvence, carrierFreq, sample_rate, x, Delta_f): # Podívat se i na předlohu - podle mě to uplně nefunguje
         global samples, out, xIntText, N         
         
         """
@@ -347,15 +347,15 @@ class Worker(QObject):
 
         xInt = np.repeat(xInt_n, opakovani)
 
-        f = (carrier_freq + Delta_f * xInt - (n * Delta_f)/2) + Delta_f/2
-        #f = carrier_freq + D_f * carrier_freq * xInt / 2 # Frekvence pro každý symbol
+        f = (carrierFreq + Delta_f * xInt - (n * Delta_f)/2) + Delta_f/2
+        #f = carrierFreq + D_f * carrierFreq * xInt / 2 # Frekvence pro každý symbol
         # xSymbols = np.cos(2 * np.pi * f * t) + 1j*np.sin(2 * np.pi * f * t)
         #samples = np.repeat(xSymbols, opakovani)
         #samples = xSymbols
         delta_phi = f * np.pi / (sample_rate / 2.0)
         phi = np.cumsum(delta_phi)
-        samples = np.cos(2*np.pi*carrier_freq*t + phi) + 1j * np.sin(2*np.pi*carrier_freq*t + phi)
-        out = self.IQnaReal(samples,len(samples), np.arange(delka) / sample_rate, carrier_freq)
+        samples = np.cos(2*np.pi*carrierFreq*t + phi) + 1j * np.sin(2*np.pi*carrierFreq*t + phi)
+        out = self.IQnaReal(samples,len(samples), np.arange(delka) / sample_rate, carrierFreq)
 
         N = len(samples)
         xIntText = str(xInt_n)
@@ -414,7 +414,7 @@ class Ui_ModulaceWindow(object):
             self.lOpakovani.setText("Počet vzorků")
             self.sBOpakovani.setMinimum(100)
             self.sBOpakovani.setMaximum(2000)
-            self.sBOpakovani.setValue(1000)
+            self.sBOpakovani.setValue(1200)
             self.sBOpakovani.setSingleStep(10)
         if self.cBmodulace.currentText() == "FM":
             self.hSfrekNosne.setEnabled(True) 
@@ -428,7 +428,7 @@ class Ui_ModulaceWindow(object):
             self.cBnbitmodulace.setEnabled(False)
             self.cBpolorovina.setEnabled(False)
             self.sBpromodulovanost.setEnabled(True)
-            self.sBpromodulovanost.setMaximum(20)
+            self.sBpromodulovanost.setMaximum(100)
             self.sBpromodulovanost.setValue(1)
             self.rBzobrazeni1.setEnabled(False)
             self.rBzobrazeni2.setEnabled(False)
@@ -436,7 +436,7 @@ class Ui_ModulaceWindow(object):
             self.lOpakovani.setText("Počet vzorků")
             self.sBOpakovani.setMinimum(100)
             self.sBOpakovani.setMaximum(2000)
-            self.sBOpakovani.setValue(1000)
+            self.sBOpakovani.setValue(1200)
             self.sBOpakovani.setSingleStep(10)
         if self.cBmodulace.currentText() == "ASK":
             self.hSfrekNosne.setEnabled(True) 
@@ -582,7 +582,7 @@ class Ui_ModulaceWindow(object):
 
         self.lEvlastniSekvence.setText(xIntText)
 
-    # def ZobrazeniAnal(self, samples,cosModulacni,cosNosna,N):
+    # def ZobrazeniAnal(self, samples,cosModul,cosCarrier,N):
     def ZobrazeniAnal(self): # Zobrazení pro analogové modulace
         plt.ioff()
         """
@@ -592,8 +592,8 @@ class Ui_ModulaceWindow(object):
         # self.matplotwidget.axis.plot(np.real(samples)) 
         # self.matplotwidget.axis.plot(samples) 
         # self.matplotwidget.axis.plot(np.imag(samples)) 
-        self.matplotwidget.axis.plot(np.real(cosModulacni[0:int(N/5)]))
-        self.matplotwidget.axis.plot(np.real(cosNosna[0:int(N/5)]))
+        self.matplotwidget.axis.plot(np.real(cosModul[0:int(N/5)]))
+        self.matplotwidget.axis.plot(np.real(cosCarrier[0:int(N/5)]))
         self.matplotwidget.axis.plot(np.real(samples[0:int(N/5)])+np.imag(samples[0:int(N/5)]), linewidth=3) 
         self.matplotwidget.axis.grid(True)
         self.matplotwidget.axis.legend(["Modulační signál","Nosná","Modulovaný signál"])
@@ -607,8 +607,8 @@ class Ui_ModulaceWindow(object):
         """
         # Výpočet FFT
         mag_samples, f1, L1 = TxRxModul.ProZobrazeniFFT(samples, N, self.sample_rate)
-        mag_modulater, f2, L2 = TxRxModul.ProZobrazeniFFT(cosModulacni, N, self.sample_rate)
-        mag_carrier, f3, L3 = TxRxModul.ProZobrazeniFFT(cosNosna, N, self.sample_rate)
+        mag_modulater, f2, L2 = TxRxModul.ProZobrazeniFFT(cosModul, N, self.sample_rate)
+        mag_carrier, f3, L3 = TxRxModul.ProZobrazeniFFT(cosCarrier, N, self.sample_rate)
 
         # Zobrazení FFT
         self.matplotwidget.axis2.clear()
@@ -1280,7 +1280,7 @@ class Ui_ModulaceWindow(object):
         # self.lEvlastniSekvence.setText(str(xInt))
 
     def FSK(self):
-        carrier_freq = self.hSfrekNosne.value()
+        carrierFreq = self.hSfrekNosne.value()
         # D_f = self.sBpromodulovanost.value()/100
         Delta_f = self.sBpromodulovanost.value()          
         n = int(self.cBnbitmodulace.currentText())
@@ -1305,14 +1305,14 @@ class Ui_ModulaceWindow(object):
         """
         xInt = np.repeat(xInt_n, self.opakovani)
 
-        f = (carrier_freq + Delta_f * xInt - (n * Delta_f)/2) + Delta_f/2 # průběh frekvence v čase
-        #f = carrier_freq + D_f * carrier_freq * xInt / 2 # Frekvence pro každý symbol
+        f = (carrierFreq + Delta_f * xInt - (n * Delta_f)/2) + Delta_f/2 # průběh frekvence v čase
+        #f = carrierFreq + D_f * carrierFreq * xInt / 2 # Frekvence pro každý symbol
         # xSymbols = np.cos(2 * np.pi * f * t) + 1j*np.sin(2 * np.pi * f * t)
         #samples = np.repeat(xSymbols, opakovani)
         #samples = xSymbols
         delta_phi = f * np.pi / (self.sample_rate / 2.0)
         phi = np.cumsum(delta_phi)
-        samples = np.cos(2*np.pi*carrier_freq*t + phi) + 1j * np.sin(2*np.pi*carrier_freq*t + phi)
+        samples = np.cos(2*np.pi*carrierFreq*t + phi) + 1j * np.sin(2*np.pi*carrierFreq*t + phi)
         out = self.IQnaReal(samples,delka, t)
 
         xIntText = str(xInt_n)
@@ -1323,8 +1323,8 @@ class Ui_ModulaceWindow(object):
 
     def AM(self):
         # Inicializace
-        carrier_freq = self.hSfrekNosne.value()
-        modulater_freq = self.hSfrekSign.value()
+        carrierFreq = self.hSfrekNosne.value()
+        modulFreq = self.hSfrekSign.value()
         modulation_index = self.sBpromodulovanost.value()/100
         N = self.sBOpakovani.value()*5
         t = np.arange(N) / self.sample_rate
@@ -1332,49 +1332,49 @@ class Ui_ModulaceWindow(object):
         """
         Komlexní zápis
         """
-        # cosModulacni = np.cos(modulater_freq * xRadians) + 1j * np.sin(modulater_freq * xRadians)
-        # cosNosna = np.cos(carrier_freq * xRadians) + 1j * np.sin(carrier_freq * xRadians)
-        # samples = A_c * (1 + modulation_index * cosModulacni) * cosNosna
+        # cosModul = np.cos(modulFreq * xRadians) + 1j * np.sin(modulFreq * xRadians)
+        # cosCarrier = np.cos(carrierFreq * xRadians) + 1j * np.sin(carrierFreq * xRadians)
+        # samples = A_c * (1 + modulation_index * cosModul) * cosCarrier
         
         """
         Normální zápis
         """
-        cosModulacni = np.cos(modulater_freq * 2 * np.pi * t)
-        cosNosna = np.cos(carrier_freq * 2 * np.pi * t)
-        # samples = A_c * (1 + modulation_index * cosModulacni) * cosNosna
-        samples = modulation_index * cosModulacni * cosNosna + cosNosna
+        cosModul = np.cos(modulFreq * 2 * np.pi * t)
+        cosCarrier = np.cos(carrierFreq * 2 * np.pi * t)
+        # samples = A_c * (1 + modulation_index * cosModul) * cosCarrier
+        samples = modulation_index * cosModul * cosCarrier + cosCarrier
         
         samples = TxRxModul.NormovaniAbs(samples)
-        cosModulacni = TxRxModul.NormovaniAbs(cosModulacni)
-        cosNosna = TxRxModul.NormovaniAbs(cosNosna)
+        cosModul = TxRxModul.NormovaniAbs(cosModul)
+        cosCarrier = TxRxModul.NormovaniAbs(cosCarrier)
 
-        self.ZobrazeniAnal(samples,cosModulacni,cosNosna,N)
+        self.ZobrazeniAnal(samples,cosModul,cosCarrier,N)
 
     def FM(self):
         # Inicializace
-        carrier_freq = self.hSfrekNosne.value()
-        modulater_freq = self.hSfrekSign.value()
+        carrierFreq = self.hSfrekNosne.value()
+        modulFreq = self.hSfrekSign.value()
         D_f = self.sBpromodulovanost.value()/10
         N = self.sBOpakovani.value()*5
         t = np.arange(N) / self.sample_rate
 
-        # f = carrier_freq + D_f * np.cos(2*np.pi*modulater_freq*t)
-        cosNosna = np.cos(2*np.pi*carrier_freq*t)
-        cosModulacni = np.cos(2*np.pi*modulater_freq*t)  # Vysílaná zpráva
-        # soucet_modulater = np.real(cosModulacni) + np.imag(cosModulacni)
-        # samples = A_c*np.cos(2*np.pi*carrier_freq*t + D_f*np.sin(2*np.pi*modulater_freq*t)) + 1j * np.sin(2*np.pi*carrier_freq*t + D_f*np.sin(2*np.pi*modulater_freq*t)) # Vysílaný výsledek
+        # f = carrierFreq + D_f * np.cos(2*np.pi*modulFreq*t)
+        cosCarrier = np.cos(2*np.pi*carrierFreq*t)
+        cosModul = np.cos(2*np.pi*modulFreq*t)  # Vysílaná zpráva
+        # soucet_modulater = np.real(cosModul) + np.imag(cosModul)
+        # samples = A_c*np.cos(2*np.pi*carrierFreq*t + D_f*np.sin(2*np.pi*modulFreq*t)) + 1j * np.sin(2*np.pi*carrierFreq*t + D_f*np.sin(2*np.pi*modulFreq*t)) # Vysílaný výsledek
         # Pěkný pokud by se to považovalo za real a ne IQ
-        # phi = carrier_freq * t + D_f * cosModulacni
+        # phi = carrierFreq * t + D_f * cosModul
         # samples = np.cos(2*np.pi * phi) + 1j*np.sin(2*np.pi * phi)
-        samples = np.cos(2*np.pi*carrier_freq*t + D_f*np.sin(2*np.pi*modulater_freq*t))
+        samples = np.cos(2*np.pi*carrierFreq*t + D_f*np.sin(2*np.pi*modulFreq*t))
         
         # samples = Normovani(samples)
 
         # samples = IQnaReal(samples, len(samples), t)
 
         # deltaF = D_f
-        # h = deltaF/modulater_freq
-        self.ZobrazeniAnal(samples,cosModulacni,cosNosna,N)
+        # h = deltaF/modulFreq
+        self.ZobrazeniAnal(samples,cosModul,cosCarrier,N)
 
     def setupUi(self, ModulaceWindow, width, height):
         ModulaceWindow.setObjectName("ModulaceWindow")
@@ -1443,7 +1443,7 @@ class Ui_ModulaceWindow(object):
         self.hSfrekNosne.setObjectName("hSfrekNosne")
         self.hSfrekNosne.setMinimum(100)
         self.hSfrekNosne.setMaximum(25000)
-        self.hSfrekNosne.setValue(1000)
+        self.hSfrekNosne.setValue(1200)
         # self.hSfrekNosne.valueChanged.connect(self.Modulace)
         self.hSfrekNosne.valueChanged.connect(self.Obnoveni)
         """SpinBox frekvence nosné"""

@@ -138,6 +138,14 @@ class Ui_MainWindow(object):
         """
         Změna řádu
         """
+        # Zpracování frek offsetu
+        if self.sBoffset.value() == 1000:
+            setValue[6] += 1
+            self.sBoffset.setValue(0)
+        elif self.sBoffset.value() == -1:
+            self.sBoffset.setValue(999)
+            setValue[6] -= 1
+
         for i in rozsah:
             """
             Zvýšení řádu
@@ -208,6 +216,7 @@ class Ui_MainWindow(object):
         for i in range(0,7): # Z hodnot ze SpinBoxů se vytvoří číslo
             out = 10*out+setValue[i]
         out *= 1000 # Z kHz se udělá Hz 
+        out += self.sBoffset.value() #l Přičtení offsetu
 
         """
         Kontrola frekvence
@@ -223,6 +232,7 @@ class Ui_MainWindow(object):
             self.sBkHz3.setValue(0)
             self.sBkHz2.setValue(0)
             self.sBkHz1.setValue(0)
+            self.sBoffset.setValue(0)
         elif out < 70e6: # Překročení minima
             center_freq = 70e6
             self.sBGHz.setValue(0)
@@ -232,6 +242,7 @@ class Ui_MainWindow(object):
             self.sBkHz3.setValue(0)
             self.sBkHz2.setValue(0)
             self.sBkHz1.setValue(0)
+            self.sBoffset.setValue(0)
 
         self.ZmenaFrekvence(center_freq)  
 
@@ -471,6 +482,7 @@ class Ui_MainWindow(object):
             Zobrazení IQ složky
             """
             if self.demodulace != "AM" and self.demodulace != "FM" or not self.demod and self.rBzobrazeni2.isChecked():
+                t = np.arange(0,len(self.rx_samples[0:3000])/self.sample_rate,1/self.sample_rate)
                 self.data_line2.setData(np.real(self.rx_samples[0:3000]))
                 pen = pg.mkPen(color=(0, 255, 0))
                 self.data_line3.setData(np.imag(self.rx_samples[0:3000]), pen=pen)
@@ -496,7 +508,7 @@ class Ui_MainWindow(object):
                 if self.nModulace > 2 : maxDelka = 125
 
                 if len(zprava) > maxDelka:
-                    self.zprava = ""
+                    zprava = ""
                     self.dlg = QMessageBox(self.centralwidget)
                     self.dlg.setIcon(QMessageBox.Critical)
                     self.dlg.setWindowTitle("Problém")
@@ -504,7 +516,7 @@ class Ui_MainWindow(object):
                     self.dlg.setText("Zpráva je moc dlouhá. Maxumum znaků je " + maxDelka)
                     self.dlg.exec()  
 
-                if self.zprava == "" and self.modulace != "AM" and self.modulace != "FM": # Nevysílá se prázná zpráva
+                if zprava == "" and self.modulace != "AM" and self.modulace != "FM": # Nevysílá se prázná zpráva
                     return
 
                 allowed_characters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','1','2','3','4','5','6','7','8','9','0','(',')','$','%','_','/','[',']',' ',',','.']
@@ -674,8 +686,9 @@ class Ui_MainWindow(object):
 
     def ZobrazeniFFT(self): # Zobrazí FFT a waterfall     
         try:
-            self.rx_samples = self.sdr.rx() # Vzorky v buffru
+            self.rx_samples = self.sdr.rx() # Vzorky z buffru
         except:
+            self.timer.stop()
             self.dlg = QMessageBox(self.centralwidget)
             self.dlg.setIcon(QMessageBox.Critical)
             self.dlg.setWindowTitle("Problém")
@@ -847,6 +860,10 @@ class Ui_MainWindow(object):
         """Spin box v layout, 1 GHz"""
         self.sBGHz = QtWidgets.QSpinBox(self.horizontalLayoutWidget)
         self.sBGHz.setObjectName("sBGHz")
+        font.setPointSize(12)
+        font.setBold(False)
+        font.setWeight(50)
+        self.sBGHz.setFont(font)
         self.sBGHz.setMaximum(6)
         self.sBGHz.valueChanged.connect(self.Prevod)
         self.horizontalLayout.addWidget(self.sBGHz)
@@ -863,6 +880,10 @@ class Ui_MainWindow(object):
         """Spin box v layout, 100 MHz"""
         self.sBMHz3 = QtWidgets.QSpinBox(self.horizontalLayoutWidget)
         self.sBMHz3.setObjectName("sBMHz3")
+        font.setPointSize(12)
+        font.setBold(False)
+        font.setWeight(50)
+        self.sBMHz3.setFont(font)
         self.sBMHz3.setMaximum(10)
         self.sBMHz3.setMinimum(-1)
         self.sBMHz3.valueChanged.connect(self.Prevod)
@@ -870,6 +891,10 @@ class Ui_MainWindow(object):
         """Spin box v layout, 10 MHz"""
         self.sBMHz2 = QtWidgets.QSpinBox(self.horizontalLayoutWidget)
         self.sBMHz2.setObjectName("sBMHz2")
+        font.setPointSize(12)
+        font.setBold(False)
+        font.setWeight(50)
+        self.sBMHz2.setFont(font)
         self.sBMHz2.setMaximum(10)
         self.sBMHz2.setMinimum(-1)
         self.sBMHz2.setValue(7)
@@ -878,6 +903,10 @@ class Ui_MainWindow(object):
         """Spin box v layout, 1 MHz"""
         self.sBMHz1 = QtWidgets.QSpinBox(self.horizontalLayoutWidget)
         self.sBMHz1.setObjectName("sBMHz1")
+        font.setPointSize(12)
+        font.setBold(False)
+        font.setWeight(50)
+        self.sBMHz1.setFont(font)
         self.sBMHz1.setMaximum(10)
         self.sBMHz1.setMinimum(-1)
         self.sBMHz1.valueChanged.connect(self.Prevod)
@@ -894,6 +923,10 @@ class Ui_MainWindow(object):
         """Spin box v layout, 100 kHz"""
         self.sBkHz3 = QtWidgets.QSpinBox(self.horizontalLayoutWidget)
         self.sBkHz3.setObjectName("sBkHz3")
+        font.setPointSize(12)
+        font.setBold(False)
+        font.setWeight(50)
+        self.sBkHz3.setFont(font)
         self.sBkHz3.setMaximum(10)
         self.sBkHz3.setMinimum(-1)
         self.sBkHz3.valueChanged.connect(self.Prevod)
@@ -901,6 +934,10 @@ class Ui_MainWindow(object):
         """Spin box v layout, 10 kHz"""
         self.sBkHz2 = QtWidgets.QSpinBox(self.horizontalLayoutWidget)
         self.sBkHz2.setObjectName("sBkHz2")
+        font.setPointSize(12)
+        font.setBold(False)
+        font.setWeight(50)
+        self.sBkHz2.setFont(font)
         self.sBkHz2.setMaximum(10)
         self.sBkHz2.setMinimum(-1)
         self.sBkHz2.valueChanged.connect(self.Prevod)
@@ -908,6 +945,10 @@ class Ui_MainWindow(object):
         """Spin box v layout, 1 kHz"""
         self.sBkHz1 = QtWidgets.QSpinBox(self.horizontalLayoutWidget)
         self.sBkHz1.setObjectName("sBkHz1")
+        font.setPointSize(12)
+        font.setBold(False)
+        font.setWeight(50)
+        self.sBkHz1.setFont(font)
         self.sBkHz1.setMaximum(10)
         self.sBkHz1.setMinimum(-1)
         self.sBkHz1.valueChanged.connect(self.Prevod)
@@ -921,6 +962,21 @@ class Ui_MainWindow(object):
         self.label_kHz.setFont(font)
         self.label_kHz.setObjectName("label_kHz")
         self.horizontalLayout.addWidget(self.label_kHz)
+        """Label Hz"""
+        self.label_Hz = QtWidgets.QLabel(self.centralwidget)
+        font.setBold(False)
+        font.setWeight(50)
+        self.label_Hz.setFont(font)
+        self.label_Hz.setObjectName("label_Hz")
+        self.label_Hz.setVisible(False)
+        """Spin box offset Hz"""
+        self.sBoffset = QtWidgets.QSpinBox(self.centralwidget)
+        self.sBoffset.setObjectName("sBoffset")
+        self.sBoffset.setFont(font)
+        self.sBoffset.setMaximum(1000)
+        self.sBoffset.setMinimum(-1)
+        self.sBoffset.valueChanged.connect(self.Prevod)
+        self.sBoffset.setVisible(False)
         """tl Stop"""
         self.pBstop = QtWidgets.QPushButton(self.centralwidget)
         self.pBstop.setGeometry(110, 100, 93, 28)
@@ -1285,6 +1341,8 @@ class Ui_MainWindow(object):
         leftLayout_11.addWidget(self.sBzesileniManualPrijem,0,1,1,1)
         leftLayout_11.addWidget(self.lPrijemManual,0,2,1,1)
         leftLayout_11.setColumnStretch(3,1)
+        leftLayout_11.addWidget(self.label_Hz,0,4,1,1)
+        leftLayout_11.addWidget(self.sBoffset,0,5,1,1)
         leftLayout.addLayout(leftLayout_11)
         leftLayout.addSpacing(10)
         leftLayout_1 = QGridLayout()
@@ -1390,6 +1448,8 @@ class Ui_MainWindow(object):
         self.lPrijemManual.setText(_translate("MainWindow", "dB"))
         self.pBjakModulace.setToolTip(_translate("MainWindow", "<html><head/><body><p>Vysvětlí jak fungují všechny modulace.</p></body></html>"))
         self.pBjakModulace.setText(_translate("MainWindow", "Popis modulace"))
+        self.label_Hz.setToolTip(_translate("MainWindow", "<html><head/><body><p>Mezi dvěma oscilátory je jistý frekvenční offset. Pomocí tohoto lze eliminovat tento vliv</p></body></html>"))
+        self.label_Hz.setText(_translate("MainWindow", "Frek. offset [Hz]:"))
         self.tWvlastniSignal.setToolTip(_translate("MainWindow", "<html><head/><body><p>Tabulka, kam se zadávají parametry pro tvorbu vlastníhi modulačního signálu.</p></body></html>"))
         self.rBzobrazeni1.setToolTip(_translate("MainWindow", "<html><head/><body><p>Dolní zobrazení bude ukazovat waterfall</p></body></html>"))
         self.rBzobrazeni1.setToolTip(_translate("MainWindow", "<html><head/><body><p>Dolní zobrazení bude ukazovat výsledek návrhu vlastního modulačního signálu</p></body></html>"))
